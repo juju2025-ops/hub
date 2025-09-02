@@ -4,7 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Checklist</title>
-    <style>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
+    
+    <!-- Theme Colors -->
+    <meta name="theme-color" content="#000000">
+    <meta name="msapplication-navbutton-color" content="#000000">
+    <meta name="msapplication-TileColor" content="#000000">
+    
+    <!-- iOS Specific Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Task Hub">
+    
+    <!-- iOS Icons -->
+    <link rel="apple-touch-icon" href="./icon-192.svg">
+    <link rel="apple-touch-icon" sizes="152x152" href="./icon-192.svg">
+    <link rel="apple-touch-icon" sizes="180x180" href="./icon-192.svg">
+    <link rel="apple-touch-icon" sizes="167x167" href="./icon-192.svg">
+    
+    <!-- Standard Favicon -->
+    <link rel="icon" type="image/svg+xml" href="./icon.svg">
+    <link rel="icon" type="image/x-icon" href="./icon.svg">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="Task Hub">
+    <meta name="description" content="A simple and elegant task management application with checklists">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <style> 
         * {
             margin: 0;
             padding: 0;
@@ -484,6 +513,7 @@
             // Initialize the application
             init() {
                 this.loadItems();
+                this.loadUIState();
                 this.render();
                 this.setupEventListeners();
             },
@@ -494,6 +524,7 @@
                 const toggleButton = document.getElementById('typeToggle');
                 toggleButton.textContent = this.currentItemType === 'simple' ? 'S' : 'C';
                 toggleButton.classList.toggle('composite', this.currentItemType === 'composite');
+                this.saveUIState();
             },
 
             // Toggle add section visibility
@@ -509,6 +540,7 @@
                     addSection.style.display = 'none';
                     toggleButton.textContent = 'Show Add Section';
                 }
+                this.saveUIState();
             },
 
             // Toggle collapse state of a composite item
@@ -520,6 +552,7 @@
                     // Hide add sub-item input when collapsing
                     this.addingSubItems.delete(itemId);
                 }
+                this.saveUIState();
                 this.render();
             },
 
@@ -560,6 +593,70 @@
                     localStorage.setItem('simpleChecklistItems', JSON.stringify(this.items));
                 } catch (error) {
                     console.error('Error saving items:', error);
+                }
+            },
+
+            // Save UI state to localStorage
+            saveUIState() {
+                try {
+                    const uiState = {
+                        addSectionVisible: this.addSectionVisible,
+                        currentItemType: this.currentItemType,
+                        collapsedItems: Array.from(this.collapsedItems),
+                        addingSubItems: Array.from(this.addingSubItems)
+                    };
+                    localStorage.setItem('simpleChecklistUIState', JSON.stringify(uiState));
+                } catch (error) {
+                    console.error('Error saving UI state:', error);
+                }
+            },
+
+            // Load UI state from localStorage
+            loadUIState() {
+                try {
+                    const stored = localStorage.getItem('simpleChecklistUIState');
+                    if (stored) {
+                        const uiState = JSON.parse(stored);
+                        
+                        // Restore UI state with defaults
+                        this.addSectionVisible = uiState.addSectionVisible !== undefined ? uiState.addSectionVisible : true;
+                        this.currentItemType = uiState.currentItemType || 'simple';
+                        this.collapsedItems = new Set(uiState.collapsedItems || []);
+                        this.addingSubItems = new Set(uiState.addingSubItems || []);
+                        
+                        // Update DOM elements to reflect restored state
+                        this.updateUIElements();
+                    }
+                } catch (error) {
+                    console.error('Error loading UI state:', error);
+                    // Use defaults on error
+                    this.addSectionVisible = true;
+                    this.currentItemType = 'simple';
+                    this.collapsedItems = new Set();
+                    this.addingSubItems = new Set();
+                }
+            },
+
+            // Update DOM elements to reflect current UI state
+            updateUIElements() {
+                // Update add section visibility
+                const addSection = document.querySelector('.add-section');
+                const toggleButton = document.getElementById('toggleAddButton');
+                if (addSection && toggleButton) {
+                    if (this.addSectionVisible) {
+                        addSection.style.display = 'flex';
+                        toggleButton.textContent = 'Hide Add Section';
+                    } else {
+                        addSection.style.display = 'none';
+                        toggleButton.textContent = 'Show Add Section';
+                    }
+                }
+                
+                // Update item type toggle
+                const typeToggle = document.getElementById('typeToggle');
+                if (typeToggle) {
+                    typeToggle.textContent = this.currentItemType === 'simple' ? 'S' : 'C';
+                    typeToggle.classList.toggle('composite', this.currentItemType === 'composite');
                 }
             },
 
@@ -639,12 +736,14 @@
             // Show add sub-item input
             showAddSubItem(parentId) {
                 this.addingSubItems.add(parentId);
+                this.saveUIState();
                 this.render();
             },
 
             // Hide add sub-item input
             hideAddSubItem(parentId) {
                 this.addingSubItems.delete(parentId);
+                this.saveUIState();
                 this.render();
             },
 
@@ -840,6 +939,59 @@
 
         // Initialize the application
         ChecklistApp.init();
+
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    }, function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+
+        // PWA install prompt
+        let deferredPrompt;
+        const addBtn = document.createElement('button');
+        addBtn.style.display = 'none';
+        addBtn.textContent = 'Add to Home Screen';
+        addBtn.style.position = 'fixed';
+        addBtn.style.bottom = '20px';
+        addBtn.style.right = '20px';
+        addBtn.style.background = 'black';
+        addBtn.style.color = 'white';
+        addBtn.style.border = '2px solid white';
+        addBtn.style.padding = '10px 20px';
+        addBtn.style.cursor = 'pointer';
+        addBtn.style.zIndex = '1000';
+        document.body.appendChild(addBtn);
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+            // Update UI to notify the user they can add to home screen
+            addBtn.style.display = 'block';
+
+            addBtn.addEventListener('click', (e) => {
+                // hide our user interface that shows our A2HS button
+                addBtn.style.display = 'none';
+                // Show the prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the A2HS prompt');
+                    } else {
+                        console.log('User dismissed the A2HS prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            });
+        });
     </script>
 </body>
 </html>
