@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: black;
+            color: white;
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid white;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+
+        .navigation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            flex-grow: 1;
+            align-content: start;
+        }
+
+        .nav-card {
+            background: black;
+            border: 2px solid white;
+            padding: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: white;
+            display: block;
+        }
+
+        .nav-card:hover {
+            border-color: #007bff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+
+        .card-icon {
+            font-size: 32px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+
+        .coming-soon {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .coming-soon:hover {
+            border-color: white;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .coming-soon-text {
+            color: #666;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .title {
+                font-size: 24px;
+            }
+            
+            .navigation-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-card {
+                padding: 25px;
+            }
+            
+            .card-icon {
+                font-size: 28px;
+            }
+            
+            .card-title {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">Task Hub</div>
+        </div>
+        
+        
+        <div class="navigation-grid">
+            <a href="checklist.html" class="nav-card">
+                <div class="card-icon">✓</div>
+                <div class="card-title">checklist</div>
+            </a>
+            
+            <div class="nav-card coming-soon">
+                <div class="card-icon">📊</div>
+                <div class="card-title">Project Manager</div>
+                <div class="coming-soon-text">Coming Soon</div>
+            </div>
+            
+            <div class="nav-card coming-soon">
+                <div class="card-icon">📅</div>
+                <div class="card-title">Calendar View</div>
+                <div class="coming-soon-text">Coming Soon</div>
+            </div>
+            
+            <div class="nav-card coming-soon">
+                <div class="card-icon">⚙️</div>
+                <div class="card-title">Settings</div>
+                <div class="coming-soon-text">Coming Soon</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

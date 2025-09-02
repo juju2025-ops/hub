@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Checklist</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: black;
+            color: white;
+            line-height: 1.4;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid white;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .back-button {
+            background: black;
+            border: 1px solid white;
+            color: white;
+            padding: 8px 16px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .back-button:hover {
+            border-color: #007bff;
+            color: #007bff;
+        }
+
+        .toggle-add-button {
+            background: black;
+            border: 1px solid white;
+            color: white;
+            padding: 8px 16px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-add-button:hover {
+            border-color: #007bff;
+            color: #007bff;
+        }
+
+        .minimize-button {
+            background: black;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            margin-left: 10px;
+            border-radius: 3px;
+        }
+
+        .minimize-button:hover {
+            border-color: #777;
+            color: white;
+        }
+
+        .minimize-button.collapsed {
+            border-color: #007bff;
+            color: #007bff;
+        }
+
+        .add-section {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .add-input {
+            flex: 1;
+            min-width: 200px;
+            border: 1px solid white;
+            padding: 12px;
+            font-size: 16px;
+            background: black;
+            color: white;
+            outline: none;
+        }
+
+        .add-input:focus {
+            border-color: #007bff;
+        }
+
+        .type-toggle {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 2px solid #555;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .type-toggle:hover {
+            border-color: #777;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(255,255,255,0.1);
+        }
+
+        .type-toggle.composite {
+            background: linear-gradient(135deg, #f0f0f0 0%, #d0d0d0 100%);
+            color: #2a2a2a;
+            border-color: #888;
+        }
+
+        .type-toggle.composite:hover {
+            background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+            border-color: #aaa;
+            color: black;
+        }
+
+        .add-button {
+            background: black;
+            border: 2px solid white;
+            color: white;
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .add-button:hover {
+            border-color: #007bff;
+            color: #007bff;
+        }
+
+        .checklist {
+            list-style: none;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            padding: 18px 20px;
+            border-bottom: 1px solid #333;
+            gap: 15px;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.01) 50%, transparent 100%);
+            border-radius: 4px;
+            margin: 8px 0;
+            transition: all 0.2s ease;
+        }
+
+        .checklist-item:hover {
+            background: linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.02) 100%);
+            border-color: #444;
+        }
+
+        .checklist-item:last-child {
+            border-bottom: 1px solid #333;
+        }
+
+        .item-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid white;
+            background: black;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .item-checkbox:hover {
+            border-color: #ccc;
+        }
+
+        .item-checkbox:focus {
+            outline: none;
+            border-color: #ccc;
+        }
+
+        .item-checkbox:checked {
+            background: white;
+            border-color: white;
+        }
+
+        .item-checkbox:checked::before {
+            content: '';
+            position: absolute;
+            left: 4px;
+            top: 1px;
+            width: 5px;
+            height: 9px;
+            border: solid black;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .item-checkbox:checked:hover {
+            background: #ccc;
+            border-color: #ccc;
+        }
+
+        .item-checkbox:checked:hover::before {
+            border-color: black;
+        }
+
+        .item-text {
+            flex: 1;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .item-text.completed {
+            text-decoration: line-through;
+            color: #666;
+        }
+
+        .delete-button {
+            background: black;
+            border: 1px solid #666;
+            color: #666;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .delete-button:hover {
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+
+        .delete-button.confirm {
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+
+        .sub-item {
+            margin-left: 30px;
+            border-left: 2px solid #444;
+            padding-left: 15px;
+        }
+
+        .add-sub-item-section {
+            margin-left: 30px;
+            padding-left: 15px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        .sub-item-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid white;
+            background: black;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .sub-item-checkbox:hover {
+            border-color: #ccc;
+        }
+
+        .sub-item-checkbox:focus {
+            outline: none;
+            border-color: #ccc;
+        }
+
+        .sub-item-checkbox:checked {
+            background: white;
+            border-color: white;
+        }
+
+        .sub-item-checkbox:checked::before {
+            content: '';
+            position: absolute;
+            left: 3px;
+            top: 0px;
+            width: 4px;
+            height: 8px;
+            border: solid black;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .sub-item-checkbox:checked:hover {
+            background: #ccc;
+            border-color: #ccc;
+        }
+
+        .sub-item-checkbox:checked:hover::before {
+            border-color: black;
+        }
+
+        .sub-item-text {
+            flex: 1;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .sub-item-text.completed {
+            text-decoration: line-through;
+            color: #666;
+        }
+
+        .sub-delete-button {
+            background: black;
+            border: 1px solid #666;
+            color: #666;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .sub-delete-button:hover {
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+
+        .sub-delete-button.confirm {
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+
+        .add-sub-item {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 12px;
+            margin: 10px 5px 5px 0;
+            transition: all 0.3s ease;
+            border-radius: 3px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .add-sub-item:hover {
+            border-color: #777;
+            color: white;
+            background: linear-gradient(135deg, #3a3a3a 0%, #2a2a2a 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(255,255,255,0.1);
+        }
+
+        .sub-item-input {
+            flex: 1;
+            border: 1px solid #555;
+            padding: 8px 12px;
+            font-size: 14px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            color: white;
+            outline: none;
+            margin-right: 8px;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+        }
+
+        .sub-item-input:focus {
+            border-color: #777;
+            background: #1a1a1a;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.1);
+        }
+
+        .empty-message {
+            text-align: center;
+            font-size: 18px;
+            color: #666;
+            margin-top: 50px;
+            font-style: italic;
+        }
+
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .title {
+                font-size: 20px;
+            }
+            
+            .add-section {
+                flex-direction: column;
+            }
+            
+            .add-input {
+                min-width: auto;
+            }
+            
+            .checklist-item {
+                padding: 12px 0;
+                gap: 12px;
+            }
+            
+            .item-text {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">Simple Checklist</div>
+            <a href="index.html" class="back-button">← Back to Hub</a>
+            <button class="toggle-add-button" id="toggleAddButton" onclick="ChecklistApp.toggleAddSection()">Hide Add Section</button>
+        </div>
+        
+        <div class="add-section">
+            <input type="text" class="add-input" id="newItemInput" placeholder="Add a new item..." maxlength="200">
+            <button class="type-toggle" id="typeToggle" onclick="ChecklistApp.toggleItemType()">S</button>
+            <button class="add-button" onclick="addItem()">Add Item</button>
+        </div>
+        
+        <ul class="checklist" id="checklist">
+            <!-- Items will be added here dynamically -->
+        </ul>
+        
+        <div class="empty-message" id="emptyMessage" style="display: none;">
+            Your checklist is empty. Add some items to get started!
+        </div>
+        
+    </div>
+
+    <script>
+        // Enhanced Checklist Application with Composite Items
+        const ChecklistApp = {
+            items: [],
+            nextId: 1,
+            confirmingDelete: new Set(),
+            currentItemType: 'simple', // 'simple' or 'composite'
+            addingSubItems: new Set(), // Track which composite items are showing add input
+            addSectionVisible: true, // Track visibility of add section
+            collapsedItems: new Set(), // Track which composite items are collapsed
+
+            // Initialize the application
+            init() {
+                this.loadItems();
+                this.render();
+                this.setupEventListeners();
+            },
+
+            // Toggle between simple and composite item types
+            toggleItemType() {
+                this.currentItemType = this.currentItemType === 'simple' ? 'composite' : 'simple';
+                const toggleButton = document.getElementById('typeToggle');
+                toggleButton.textContent = this.currentItemType === 'simple' ? 'S' : 'C';
+                toggleButton.classList.toggle('composite', this.currentItemType === 'composite');
+            },
+
+            // Toggle add section visibility
+            toggleAddSection() {
+                this.addSectionVisible = !this.addSectionVisible;
+                const addSection = document.querySelector('.add-section');
+                const toggleButton = document.getElementById('toggleAddButton');
+                
+                if (this.addSectionVisible) {
+                    addSection.style.display = 'flex';
+                    toggleButton.textContent = 'Hide Add Section';
+                } else {
+                    addSection.style.display = 'none';
+                    toggleButton.textContent = 'Show Add Section';
+                }
+            },
+
+            // Toggle collapse state of a composite item
+            toggleItemCollapse(itemId) {
+                if (this.collapsedItems.has(itemId)) {
+                    this.collapsedItems.delete(itemId);
+                } else {
+                    this.collapsedItems.add(itemId);
+                    // Hide add sub-item input when collapsing
+                    this.addingSubItems.delete(itemId);
+                }
+                this.render();
+            },
+
+            // Load items from localStorage
+            loadItems() {
+                try {
+                    const stored = localStorage.getItem('simpleChecklistItems');
+                    if (stored) {
+                        this.items = JSON.parse(stored);
+                        
+                        // Ensure backward compatibility - add missing properties
+                        this.items.forEach(item => {
+                            if (!item.type) item.type = 'simple';
+                            if (!item.subItems) item.subItems = [];
+                        });
+                        
+                        // Update nextId based on all items (including sub-items)
+                        if (this.items.length > 0) {
+                            const allIds = [];
+                            this.items.forEach(item => {
+                                allIds.push(item.id);
+                                if (item.subItems) {
+                                    item.subItems.forEach(subItem => allIds.push(subItem.id));
+                                }
+                            });
+                            this.nextId = Math.max(...allIds) + 1;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error loading items:', error);
+                    this.items = [];
+                }
+            },
+
+            // Save items to localStorage
+            saveItems() {
+                try {
+                    localStorage.setItem('simpleChecklistItems', JSON.stringify(this.items));
+                } catch (error) {
+                    console.error('Error saving items:', error);
+                }
+            },
+
+            // Add a new item
+            addItem(text) {
+                if (!text) {
+                    text = document.getElementById('newItemInput').value.trim();
+                }
+                
+                if (!text) return;
+
+                // Clear any delete confirmations
+                this.confirmingDelete.clear();
+
+                const item = {
+                    id: this.nextId++,
+                    text: text,
+                    type: this.currentItemType,
+                    completed: false,
+                    createdAt: new Date().toISOString(),
+                    subItems: this.currentItemType === 'composite' ? [] : undefined
+                };
+
+                this.items.unshift(item);
+                this.saveItems();
+                this.render();
+                
+                // Clear input
+                document.getElementById('newItemInput').value = '';
+            },
+
+            // Add a sub-item to a composite item
+            addSubItem(parentId, text) {
+                if (!text) return;
+
+                const parentItem = this.items.find(item => item.id === parentId);
+                if (!parentItem || parentItem.type !== 'composite') return;
+
+                const subItem = {
+                    id: this.nextId++,
+                    text: text,
+                    completed: false,
+                    createdAt: new Date().toISOString(),
+                    parentId: parentId
+                };
+
+                parentItem.subItems.push(subItem);
+                this.addingSubItems.delete(parentId);
+                this.saveItems();
+                this.render();
+            },
+
+            // Toggle sub-item completion
+            toggleSubItem(parentId, subItemId) {
+                const parentItem = this.items.find(item => item.id === parentId);
+                if (!parentItem) return;
+
+                const subItem = parentItem.subItems.find(sub => sub.id === subItemId);
+                if (subItem) {
+                    subItem.completed = !subItem.completed;
+                    subItem.completedAt = subItem.completed ? new Date().toISOString() : null;
+                    this.saveItems();
+                    this.render();
+                }
+            },
+
+            // Delete a sub-item
+            deleteSubItem(parentId, subItemId) {
+                const parentItem = this.items.find(item => item.id === parentId);
+                if (!parentItem) return;
+
+                parentItem.subItems = parentItem.subItems.filter(sub => sub.id !== subItemId);
+                this.saveItems();
+                this.render();
+            },
+
+            // Show add sub-item input
+            showAddSubItem(parentId) {
+                this.addingSubItems.add(parentId);
+                this.render();
+            },
+
+            // Hide add sub-item input
+            hideAddSubItem(parentId) {
+                this.addingSubItems.delete(parentId);
+                this.render();
+            },
+
+            // Toggle item completion
+            toggleItem(id) {
+                const item = this.items.find(item => item.id === id);
+                if (item) {
+                    item.completed = !item.completed;
+                    item.completedAt = item.completed ? new Date().toISOString() : null;
+                    // Clear delete confirmation when toggling
+                    this.confirmingDelete.delete(id);
+                    this.saveItems();
+                    this.render();
+                }
+            },
+
+            // Delete an item (and all its sub-items if composite)
+            deleteItem(id) {
+                if (this.confirmingDelete.has(id)) {
+                    // Second click - actually delete
+                    this.items = this.items.filter(item => item.id !== id);
+                    this.confirmingDelete.delete(id);
+                    this.addingSubItems.delete(id); // Clean up if it was showing add input
+                    this.saveItems();
+                    this.render();
+                } else {
+                    // First click - show confirmation
+                    this.confirmingDelete.add(id);
+                    this.render();
+                }
+            },
+
+
+            // Render the checklist
+            render() {
+                const checklist = document.getElementById('checklist');
+                const emptyMessage = document.getElementById('emptyMessage');
+
+                // Clear current items
+                checklist.innerHTML = '';
+
+                if (this.items.length === 0) {
+                    emptyMessage.style.display = 'block';
+                    return;
+                }
+
+                emptyMessage.style.display = 'none';
+
+                // Sort items: incomplete first, then completed
+                const sortedItems = [...this.items].sort((a, b) => {
+                    if (a.completed === b.completed) {
+                        return new Date(b.createdAt) - new Date(a.createdAt);
+                    }
+                    return a.completed - b.completed;
+                });
+
+                // Render each item and its sub-items in a flat list
+                sortedItems.forEach(item => {
+                    // Render main item
+                    this.renderItem(item, checklist, false);
+                    
+                    // Only render sub-items and add section if not collapsed
+                    const isCollapsed = this.collapsedItems.has(item.id);
+                    
+                    // Render sub-items if composite and not collapsed
+                    if (item.type === 'composite' && item.subItems && item.subItems.length > 0 && !isCollapsed) {
+                        item.subItems.forEach(subItem => {
+                            this.renderItem(subItem, checklist, true, item.id);
+                        });
+                    }
+                    
+                    // Render add sub-item section if needed and not collapsed
+                    if (item.type === 'composite' && !isCollapsed) {
+                        this.renderAddSubItemSection(item, checklist);
+                    }
+                });
+            },
+
+            // Render a single item (works for both main items and sub-items)
+            renderItem(item, container, isSubItem = false, parentId = null) {
+                const li = document.createElement('li');
+                li.className = `checklist-item ${isSubItem ? 'sub-item' : ''}`;
+                
+                const isConfirming = this.confirmingDelete.has(item.id);
+                const deleteAction = isSubItem ?
+                    `ChecklistApp.deleteSubItem(${parentId}, ${item.id})` :
+                    `ChecklistApp.deleteItem(${item.id})`;
+                const toggleAction = isSubItem ?
+                    `ChecklistApp.toggleSubItem(${parentId}, ${item.id})` :
+                    `ChecklistApp.toggleItem(${item.id})`;
+                
+                // Add minimize button for composite items (main items only)
+                const minimizeButton = !isSubItem && item.type === 'composite' ?
+                    `<button class="minimize-button ${this.collapsedItems.has(item.id) ? 'collapsed' : ''}"
+                            onclick="ChecklistApp.toggleItemCollapse(${item.id})">
+                        ${this.collapsedItems.has(item.id) ? '▶' : '▼'}
+                    </button>` : '';
+                
+                li.innerHTML = `
+                    <input type="checkbox" class="item-checkbox" ${item.completed ? 'checked' : ''}
+                           onchange="${toggleAction}">
+                    <span class="item-text ${item.completed ? 'completed' : ''}">${this.escapeHtml(item.text)}</span>
+                    ${minimizeButton}
+                    <button class="delete-button ${isConfirming ? 'confirm' : ''}" onclick="${deleteAction}">${isConfirming ? 'Delete?' : 'Delete'}</button>
+                `;
+                container.appendChild(li);
+            },
+
+            // Render add sub-item section for composite items
+            renderAddSubItemSection(item, container) {
+                const isAddingSubItem = this.addingSubItems.has(item.id);
+                
+                if (isAddingSubItem) {
+                    // Show input for adding sub-item
+                    const addSection = document.createElement('div');
+                    addSection.className = 'add-sub-item-section';
+                    addSection.innerHTML = `
+                        <div class="checklist-item sub-item">
+                            <input type="text" class="sub-item-input" id="subItemInput_${item.id}"
+                                   placeholder="Add sub-item..." maxlength="200"
+                                   onkeydown="if(event.key==='Enter') ChecklistApp.addSubItemFromInput(${item.id}); if(event.key==='Escape') ChecklistApp.hideAddSubItem(${item.id});">
+                            <button onclick="ChecklistApp.addSubItemFromInput(${item.id})" class="add-sub-item">Add</button>
+                            <button onclick="ChecklistApp.hideAddSubItem(${item.id})" class="add-sub-item">Cancel</button>
+                        </div>
+                    `;
+                    container.appendChild(addSection);
+                } else {
+                    // Show "Add Sub-Item" button
+                    const addSection = document.createElement('div');
+                    addSection.className = 'add-sub-item-section';
+                    addSection.innerHTML = `
+                        <button class="add-sub-item" onclick="ChecklistApp.showAddSubItem(${item.id})">+ Add Sub-Item</button>
+                    `;
+                    container.appendChild(addSection);
+                }
+            },
+
+            // Add sub-item from input field
+            addSubItemFromInput(parentId) {
+                const input = document.getElementById(`subItemInput_${parentId}`);
+                if (input) {
+                    const text = input.value.trim();
+                    if (text) {
+                        this.addSubItem(parentId, text);
+                    }
+                }
+            },
+
+            // Setup event listeners
+            setupEventListeners() {
+                const input = document.getElementById('newItemInput');
+                
+                // Enter key to add item
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        this.addItem();
+                    }
+                });
+
+                // Global click handler to clear delete confirmations
+                document.addEventListener('click', (e) => {
+                    // Don't clear if clicking on a delete button that's already in confirm state
+                    if (e.target.classList.contains('delete-button') && e.target.classList.contains('confirm')) {
+                        return;
+                    }
+                    
+                    // Don't clear if clicking on a delete button for the first time
+                    if (e.target.classList.contains('delete-button') && !e.target.classList.contains('confirm')) {
+                        return;
+                    }
+                    
+                    // Clear confirmations for any other click
+                    if (this.confirmingDelete.size > 0) {
+                        this.confirmingDelete.clear();
+                        this.render();
+                    }
+                });
+            },
+
+            // Utility function to escape HTML
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        };
+
+        // Global functions
+        function addItem() {
+            ChecklistApp.addItem();
+        }
+
+
+        // Initialize the application
+        ChecklistApp.init();
+    </script>
+</body>
+</html>
